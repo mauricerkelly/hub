@@ -23,6 +23,13 @@ check_warnings() {
 run rake test
 run cucumber features
 
+if tmux -V 2>/dev/null; then
+  git --version
+  bash --version
+  zsh --version
+  run cucumber -p completion --format progress
+fi
+
 check_warnings
 
 exit $STATUS
