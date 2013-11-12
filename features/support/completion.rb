@@ -70,6 +70,18 @@ setup_tmp_home = lambda { |shell|
   end
 }
 
+$tmux = nil
+
+Before('@completion') do
+  unless $tmux
+    $tmux = %w[tmux -L hub-test]
+    system(*($tmux + %w[new-session -ds hub]))
+    at_exit do
+      system(*($tmux + %w[kill-server]))
+    end
+  end
+end
+
 After('@completion') do
   tmux_kill_pane
 end
@@ -83,7 +95,7 @@ World Module.new {
 
   define_method(:tmux_pane) do
     return @tmux_pane if tmux_pane?
-    @tmux_pane = `tmux new-window -dP -n test -c "#{tmpdir}" 'env HOME="#{tmpdir}" #{shell}'`.chomp
+    @tmux_pane = `#{$tmux.join(' ')} new-window -dP -n test -c "#{tmpdir}" 'env HOME="#{tmpdir}" #{shell}'`.chomp
   end
 
   def tmux_pane?
@@ -91,15 +103,15 @@ World Module.new {
   end
 
   def tmux_pane_contents
-    `tmux capture-pane -p -t #{tmux_pane}`.rstrip
+    `#{$tmux.join(' ')} capture-pane -p -t #{tmux_pane}`.rstrip
   end
 
   def tmux_send_keys(*keys)
-    system 'tmux', 'send-keys', '-t', tmux_pane, *keys
+    system(*($tmux + ['send-keys', '-t', tmux_pane, *keys]))
   end
 
   def tmux_kill_pane
-    system 'tmux', 'kill-pane', '-t', tmux_pane if tmux_pane?
+    system(*($tmux + ['kill-pane', '-t', tmux_pane])) if tmux_pane?
   end
 
   def tmux_wait_for_prompt
