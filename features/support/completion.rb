@@ -95,7 +95,9 @@ World Module.new {
 
   define_method(:tmux_pane) do
     return @tmux_pane if tmux_pane?
-    @tmux_pane = `#{$tmux.join(' ')} new-window -dP -n test -c "#{tmpdir}" 'env HOME="#{tmpdir}" #{shell}'`.chomp
+    Dir.chdir(tmpdir) do
+      @tmux_pane = `#{$tmux.join(' ')} new-window -dP -n test 'env HOME="#{tmpdir}" #{shell}'`.chomp
+    end
   end
 
   def tmux_pane?
@@ -103,7 +105,8 @@ World Module.new {
   end
 
   def tmux_pane_contents
-    `#{$tmux.join(' ')} capture-pane -p -t #{tmux_pane}`.rstrip
+    system(*($tmux + ['capture-pane', '-t', tmux_pane]))
+    `#{$tmux.join(' ')} show-buffer`.rstrip
   end
 
   def tmux_send_keys(*keys)
