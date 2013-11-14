@@ -131,7 +131,7 @@ World Module.new {
 
   def tmux_wait_for_completion
     # bash can be pretty slow
-    sleep 0.6
+    sleep 1
   end
 
   def tmux_completion_menu
